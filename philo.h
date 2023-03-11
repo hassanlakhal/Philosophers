@@ -6,7 +6,7 @@
 /*   By: hlakhal- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:59:08 by hlakhal-          #+#    #+#             */
-/*   Updated: 2023/03/10 20:05:53 by hlakhal-         ###   ########.fr       */
+/*   Updated: 2023/03/11 21:12:14 by hlakhal-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ typedef struct philo
 	int id;
 	pthread_t *philosopher;
 	pthread_mutex_t *fork_d;
+	pthread_mutex_t *print;
 	pthread_mutex_t cont_mutex;
 	unsigned long time_to_sleep;
 	int number_temp;

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   treads.c                                           :+:      :+:    :+:   */
+/*   philo.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hlakhal- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 00:00:00 by hlakhal-          #+#    #+#             */
-/*   Updated: 2023/03/10 21:50:54 by hlakhal-         ###   ########.fr       */
+/*   Updated: 2023/03/11 21:31:37 by hlakhal-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,13 @@ void ft_usleep(unsigned long time_sleep)
 		usleep(200);
 }
 
+void	print(unsigned long time,int id, char *act, pthread_mutex_t *print)
+{
+	pthread_mutex_lock(print);
+	printf("\n %lu ms Philosopher %d %s",time, id, act);
+	if(strcmp(act,"die"))
+		pthread_mutex_unlock(print);
+}
 void	dine(t_data *data)
 {
 	unsigned long	time;
@@ -38,19 +45,21 @@ void	dine(t_data *data)
 	while (data->cont)
 	{
 		pthread_mutex_lock(&data->fork_d[data->fork_left]);
-		printf("\n %lu ms Philosopher %d has taken a fork", (get_time() - data->time_strat), data->id);
+		print(get_time() - data->time_strat , data->id,"has take a fork",data->print);
 		pthread_mutex_lock(&data->fork_d[(data->fork_right)]);
-		printf("\n %lu ms Philosopher %d has taken a fork", get_time() - data->time_strat , data->id);
-		printf("\n %lu ms Philosopher %d is eating",get_time() - data->time_strat , data->id);
+		print(get_time() - data->time_strat , data->id,"has take a fork",data->print);
+		print(get_time() - data->time_strat , data->id,"is eating",data->print);
+		pthread_mutex_lock(&data->cont_mutex);
 		if(data->cont && data->cont != -1)
 			data->cont--;
 		data->time_last = get_time();
+		pthread_mutex_unlock(&data->cont_mutex);
 		ft_usleep(data->time_to_eat);
 		pthread_mutex_unlock(&data->fork_d[data->fork_right]);
 		pthread_mutex_unlock(&data->fork_d[(data->fork_left)]);
-		printf("\n %lu ms Philosopher %d is sleeping",get_time() - data->time_strat , data->id);
+		print(get_time() - data->time_strat , data->id, "is sleeping",data->print);
 		ft_usleep(data->time_to_sleep);
-		printf("\n %lu ms Philosopher %d is thinking",get_time() - data->time_strat , data->id);
+		print(get_time() - data->time_strat , data->id,"is thinking",data->print);
 	}
 }
 
@@ -61,8 +70,11 @@ t_data *allocatin(t_data *info_p,int size_of_allocation)
 	info_p = (t_data *)malloc(sizeof(t_data) * size_of_allocation);
 	info_p->philosopher = (pthread_t *)malloc(sizeof(pthread_t) * size_of_allocation);
 	info_p[0].fork_d = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) * size_of_allocation);
+	info_p[0].print = malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_init(info_p[0].print, NULL);
 	while (i < size_of_allocation)
 	{
+		info_p[i].print = info_p[0].print;
 		info_p[i].fork_d = info_p[0].fork_d;
 		info_p[i].id = i + 1;
 		info_p[i].fork_left = i;
@@ -126,6 +138,7 @@ int main(int argc, char *argv[])
 			p[i].number_of_times_each_philosopher_must_eat = p->number_of_times_each_philosopher_must_eat;
 			p[i].cont = p->number_of_times_each_philosopher_must_eat;
 			p[i].number_temp = size_of_allocation;
+			pthread_mutex_init(&p[i].cont_mutex, NULL);
 			message = pthread_mutex_init(&p->fork_d[i], NULL);
 			if (message == -1)
 			{
@@ -155,19 +168,20 @@ int main(int argc, char *argv[])
 			i = 0;
 			while (i < p->number_of_philosophers)
 			{
-				if(!p[i].cont)
-					eat[i] = 1;
+
 				if(ft_checkeat(eat, p->number_of_philosophers))
 					return(0);
+				pthread_mutex_lock(&p[i].cont_mutex);
+				if(!p[i].cont)
+					eat[i] = 1;
 				if (get_time() -  p[i].time_last >= p->time_to_die && p[i].cont)
 				{
 					printf("\n");
-					printf("\n\t\033[31m Philosopher %d died\033[0m\n", p[i].id);
+					print(get_time() - p[i].time_strat, p[i].id,"die", p[0].print);
 					printf("\n");
 					return (1);
 				}
-				if (!p[i].number_temp)
-					return 2;
+				pthread_mutex_unlock(&p[i].cont_mutex);
 				i++;
 			}
 	}
