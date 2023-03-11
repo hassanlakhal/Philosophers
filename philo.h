@@ -6,7 +6,7 @@
 /*   By: hlakhal- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:59:08 by hlakhal-          #+#    #+#             */
-/*   Updated: 2023/03/11 21:12:14 by hlakhal-         ###   ########.fr       */
+/*   Updated: 2023/03/11 21:58:20 by hlakhal-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,4 +40,12 @@ typedef struct philo
 	unsigned long time_to_sleep;
 	int number_temp;
 }t_data;
+
+unsigned long	get_time(void);
+void ft_usleep(unsigned long time_sleep);
+int	ft_checkeat(int *a, int n);
+void ft_initialisation(int ac, char **argv, t_data *info_p);
+int	ft_atoi(char *str);
+t_data *allocatin(t_data *info_p,int size_of_allocation);
+
 #endif
