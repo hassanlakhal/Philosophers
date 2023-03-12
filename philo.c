@@ -6,20 +6,11 @@
 /*   By: hlakhal- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 00:00:00 by hlakhal-          #+#    #+#             */
-/*   Updated: 2023/03/12 15:31:59 by hlakhal-         ###   ########.fr       */
+/*   Updated: 2023/03/12 17:08:07 by hlakhal-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-void	print(t_data *info, char *act, pthread_mutex_t *print)
-{
-	pthread_mutex_lock(print);
-	printf("\n %lu ms Philosopher %d %s", get_time() - info->t_start, info->id,
-			act);
-	if (strcmp(act, "die"))
-		pthread_mutex_unlock(print);
-}
 
 void	dine(t_data *data)
 {
@@ -46,14 +37,11 @@ void	dine(t_data *data)
 	}
 }
 
-int	ft_died(t_data *died, int size)
+int	ft_died(t_data *died, int *eat)
 {
 	int	i;
-	int	*eat;
 
 	i = 0;
-	eat = malloc(size * sizeof(int));
-	memset(eat, 0, size * sizeof(int));
 	while (1)
 	{
 		i = 0;
@@ -67,7 +55,7 @@ int	ft_died(t_data *died, int size)
 			if (get_time() - died[i].time_last >= died->time_to_die
 				&& died[i].cont)
 			{
-				print(died, "died", died[0].print);
+				print(died, "\033[41m died \033[0m\n", died[0].print);
 				return (3);
 			}
 			pthread_mutex_unlock(&died[i].cont_mutex);
@@ -76,37 +64,53 @@ int	ft_died(t_data *died, int size)
 	}
 }
 
+void	td_create(t_data *philo)
+{
+	int	i;
+
+	i = 0;
+	while (i < philo->number_of_philosophers)
+	{
+		pthread_create(&philo->philosopher[i], NULL, (void *)dine,
+			(t_data *)&philo[i]);
+		i++;
+	}
+}
+
+void	mutex_init(t_data *p, int i)
+{
+	p[i].t_start = get_time();
+	p[i].time_to_eat = p->time_to_eat;
+	p[i].time_to_sleep = p->time_to_sleep;
+	p[i].number_of_times_eat = p->number_of_times_eat;
+	p[i].cont = p->number_of_times_eat;
+	pthread_mutex_init(&p[i].cont_mutex, NULL);
+	pthread_mutex_init(&p->fork_d[i], NULL);
+}
+
 int	main(int argc, char *argv[])
 {
 	t_data	*p;
 	int		i;
+	int		*eat;
 
 	p = NULL;
 	if (argc == 5 || argc == 6)
 	{
+		if (!check_arg(argv, argc))
+			return (message_error());
 		p = allocatin(p, ft_atoi(argv[1]));
 		ft_initialisation(argc, argv, p);
+		eat = malloc(ft_atoi(argv[1]) * sizeof(int));
+		memset(eat, 0, ft_atoi(argv[1]) * sizeof(int));
 		i = 0;
 		while (i < p->number_of_philosophers)
 		{
-			p[i].t_start = get_time();
-			p[i].time_to_eat = p->time_to_eat;
-			p[i].time_to_sleep = p->time_to_sleep;
-			p[i].number_of_times_eat = p->number_of_times_eat;
-			p[i].cont = p->number_of_times_eat;
-			p[i].number_temp = ft_atoi(argv[1]);
-			pthread_mutex_init(&p[i].cont_mutex, NULL);
-			pthread_mutex_init(&p->fork_d[i], NULL);
+			mutex_init(p, i);
 			i++;
 		}
-		i = 0;
-		while (i < p->number_of_philosophers)
-		{
-			pthread_create(&p->philosopher[i], NULL, (void *)dine,
-					(t_data *)&p[i]);
-			i++;
-		}
-		ft_died(p, ft_atoi(argv[1]));
+		td_create(p);
+		ft_died(p, eat);
 	}
 	return (0);
 }

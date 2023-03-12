@@ -6,7 +6,7 @@
 /*   By: hlakhal- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:59:08 by hlakhal-          #+#    #+#             */
-/*   Updated: 2023/03/12 15:31:59 by hlakhal-         ###   ########.fr       */
+/*   Updated: 2023/03/12 17:08:25 by hlakhal-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,5 +47,9 @@ int					ft_checkeat(int *a, int n);
 void				ft_initialisation(int ac, char **argv, t_data *info_p);
 int					ft_atoi(char *str);
 t_data				*allocatin(t_data *info_p, int size_of_allocation);
+void				print(t_data *info, char *act, pthread_mutex_t *print);
+int					ft_isdigit(int c);
+int					check_arg(char *argv[], int argc);
+int					message_error(void);
 
 #endif
